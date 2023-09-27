@@ -192,10 +192,14 @@ def sassignment():
             # connecting with cloud object storage
             
             COS_ENDPOINT = "https://s3.jp-tok.cloud-object-storage.appdomain.cloud"
-            COS_API_KEY_ID = "l3i0LmCGxYr7XW-hvvOHt4mprFW3cEZgkt1vsuWiKTze"
-            COS_INSTANCE_CRN = "crn:v1:bluemix:public:cloud-object-storage:global:a/0c8c6bca9b2947088aef2d0cec5aad98:63690282-e930-451b-82aa-087ac3c36892::"
+            COS_API_KEY_ID = "0o3wJG80Ut7aCDdf9Lpeg7le1Gzu9yB9OV4IoiYv1YtP"
+            COS_INSTANCE_CRN = "crn:v1:bluemix:public:cloud-object-storage:global:a/55e1ba00b7b34acba471d32a0bcdb0ef:83486546-828a-4c66-92be-6d4694d9213f::"
+    
+            
+            
+            
             cos = ibm_boto3.resource("s3",ibm_api_key_id=COS_API_KEY_ID,ibm_service_instance_id=COS_INSTANCE_CRN, config=Config(signature_version="oauth"),endpoint_url=COS_ENDPOINT)
-            cos.meta.client.upload_file(Filename= filepath,Bucket='ibmfdpcad',Key= u+x+".pdf")
+            cos.meta.client.upload_file(Filename= filepath,Bucket='sbcadfdpibm',Key= u+x+".pdf")
             msg = "Uploding Successful"
             ts = datetime.datetime.now()
             t = ts.strftime("%Y-%m-%d %H:%M:%S")
@@ -252,16 +256,16 @@ def marksassign(stdname):
     global g
     global file
     da  = []
-    
+
     COS_ENDPOINT = "https://s3.jp-tok.cloud-object-storage.appdomain.cloud"
-    COS_API_KEY_ID = "l3i0LmCGxYr7XW-hvvOHt4mprFW3cEZgkt1vsuWiKTze"
-    COS_INSTANCE_CRN = "crn:v1:bluemix:public:cloud-object-storage:global:a/0c8c6bca9b2947088aef2d0cec5aad98:63690282-e930-451b-82aa-087ac3c36892::"
+    COS_API_KEY_ID = "0o3wJG80Ut7aCDdf9Lpeg7le1Gzu9yB9OV4IoiYv1YtP"
+    COS_INSTANCE_CRN = "crn:v1:bluemix:public:cloud-object-storage:global:a/55e1ba00b7b34acba471d32a0bcdb0ef:83486546-828a-4c66-92be-6d4694d9213f::"
     cos = ibm_boto3.client("s3",
                         ibm_api_key_id=COS_API_KEY_ID,
                         ibm_service_instance_id=COS_INSTANCE_CRN,
                         config=Config(signature_version="oauth"),
                         endpoint_url=COS_ENDPOINT)
-    output = cos.list_objects(Bucket="ibmfdpcad")
+    output = cos.list_objects(Bucket="sbcadfdpibm")
     output
     l=[]
     for i in range(0,len(output['Contents'])):
@@ -281,17 +285,20 @@ def marksassign(stdname):
     print(file)
     print(len(file))
     g = len(file)
-    sql = "SELECT CSUBMITTIME from SUBMIT WHERE STUDENTNAME=?"
+    sql = "SELECT CSUBMITTIME,MARKS from SUBMIT WHERE STUDENTNAME=?"
     stmt = ibm_db.prepare(conn, sql)
     ibm_db.bind_param(stmt , 1, u)
     ibm_db.execute(stmt)
     m = ibm_db.fetch_tuple(stmt) 
+    print("shivam marks",m)
+    ma=[]
     while m != False:
+        ma.append(m[1])
         da.append(m[0])
         m = ibm_db.fetch_tuple(stmt)
-
+    print(ma)
     print(da)
-    return render_template("facultymarks.html", file=file, g=g, marks=0, datetime=da)
+    return render_template("facultymarks.html", file=file, g=g, marks=ma, datetime=da)
 
 @app.route("/marksupdate/<string:anum>", methods=['POST', 'GET'])
 def marksupdate(anum):
@@ -312,6 +319,7 @@ def marksupdate(anum):
     ibm_db.bind_param(stmt , 1, u)
     ibm_db.execute(stmt)
     m = ibm_db.fetch_tuple(stmt) 
+    print("marks update sb",m)
     while m != False:
         ma.append(m[0])
         da.append(m[1])
